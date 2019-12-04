@@ -187,11 +187,12 @@ macro(project name)
             message(STATUS "Find project defaults config(config_defaults.mk)")
             list(APPEND kconfig_defaults_files_args --defaults "${PROJECT_SOURCE_DIR}/config_defaults.mk")
         endif()
-        if(EXISTS ${PROJECT_SOURCE_DIR}/.config.mk)
-            message(STATUS "Find project defaults config(config.mk)")
-            list(APPEND kconfig_defaults_files_args --defaults "${PROJECT_SOURCE_DIR}/.config.mk")
-        endif()
     endif()
+    if(EXISTS ${PROJECT_SOURCE_DIR}/.config.mk)
+        message(STATUS "Find project defaults config(config.mk)")
+        list(APPEND kconfig_defaults_files_args --defaults "${PROJECT_SOURCE_DIR}/.config.mk")
+    endif()
+ 
 
     # Generate config file from Kconfig
     get_python(python python_version python_info_str)

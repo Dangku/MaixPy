@@ -16,7 +16,7 @@
 #define _LCD_H_
 
 #include <stdint.h>
-#include "st7789.h"
+#include "nt35310.h"
 
 /* clang-format off */
 #define BLACK       0x0000

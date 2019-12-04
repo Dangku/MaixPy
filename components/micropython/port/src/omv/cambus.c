@@ -149,6 +149,7 @@ int cambus_init(uint8_t reg_wid, int8_t i2c, int8_t pin_clk, int8_t pin_sda, uin
 {
 	dvp_init(reg_wid);
     sccb_reg_width = reg_wid;
+	mp_printf(&mp_plat_print, "sensor reg width is %d\r\n", sccb_reg_width);
     if(pin_clk<0 || pin_sda<0)
         return -1;
     i2c_device = i2c;

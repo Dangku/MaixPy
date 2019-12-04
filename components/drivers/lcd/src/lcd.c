@@ -94,7 +94,7 @@ int lcd_init(uint32_t freq, bool oct, uint16_t offset_w, uint16_t offset_h, uint
     
     g_lcd_init = true;
 
-    lcd_set_direction(DIR_YX_RLDU);
+    lcd_set_direction(DIR_YX_RLUD);
     if(invert_color)
     {
         tft_write_command(INVERSION_DISPALY_ON);
@@ -135,8 +135,21 @@ uint16_t lcd_get_height()
 void lcd_set_direction(lcd_dir_t dir)
 {
     if(!g_lcd_init)
+    {
         return;
-    //dir |= 0x08;  //excahnge RGB
+    }
+
+	if ( dir & 0x08)
+	{
+		/* bpi, fix nes exchange RGB issue */
+		printf("[LCD] nes start without rgb exchange\n");
+		dir &= 0xF7;
+	}
+	else
+	{
+    	dir |= 0x08;  /* bpi, enable excahnge RGB for bananapi */
+	}
+
     lcd_ctl.dir = dir;
     if (dir & DIR_XY_MASK)
     {

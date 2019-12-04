@@ -387,9 +387,9 @@ int InfoNES_SoundOpen( int samples_per_sync, int sample_rate )
       wavflag = 0;
 
     //speaker's dac
-    fpioa_set_function(34, FUNC_I2S0_OUT_D0);
+    fpioa_set_function(33, FUNC_I2S0_OUT_D0);
     fpioa_set_function(35, FUNC_I2S0_SCLK);
-    fpioa_set_function(33, FUNC_I2S0_WS);    
+    fpioa_set_function(34, FUNC_I2S0_WS);    
     //dmac_init();
     i2s_init(I2S_DEVICE_0, I2S_TRANSMITTER, 0x03); //mask of ch
     i2s_tx_channel_config(I2S_DEVICE_0, I2S_CHANNEL_0,

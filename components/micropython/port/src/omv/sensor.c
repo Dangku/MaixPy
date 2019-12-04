@@ -11,6 +11,7 @@
 #include "mp.h"
 #include "cambus.h"
 #include "ov2640.h"
+#include "ov5640.h"
 #include "sensor.h"
 #include "framebuffer.h"
 #include "omv_boardconfig.h"
@@ -238,6 +239,10 @@ int sensro_ov_detect(sensor_t* sensor)
                     mp_printf(&mp_plat_print, "[MAIXPY]: find ov2640\n");
                     init_ret = ov2640_init(sensor);
                     break;
+				case OV5640_ID:
+                    mp_printf(&mp_plat_print, "[MAIXPY]: find ov5640\n");
+                    init_ret = ov5640_init(sensor);
+                    break;
                 // case OV7725_ID:
 				// 	/*ov7725_init*/
                 //     printk("find ov7725\r\n");
@@ -253,6 +258,7 @@ int sensro_ov_detect(sensor_t* sensor)
                     break;
                 default:
                     // Sensor is not supported.
+                    mp_printf(&mp_plat_print, "[MAIXPY]: ov sensor(0x08%x) not support\n", sensor->chip_id);
                     return -3;
             }
         }
@@ -293,19 +299,19 @@ int sensor_init_dvp(mp_int_t freq)
 {
     int init_ret = 0;
 	
-	fpioa_set_function(47, FUNC_CMOS_PCLK);
-	fpioa_set_function(46, FUNC_CMOS_XCLK);
-	fpioa_set_function(45, FUNC_CMOS_HREF);
-	fpioa_set_function(44, FUNC_CMOS_PWDN);
-	fpioa_set_function(43, FUNC_CMOS_VSYNC);
-	fpioa_set_function(42, FUNC_CMOS_RST);
+	fpioa_set_function(40, FUNC_CMOS_PCLK);
+	fpioa_set_function(41, FUNC_CMOS_XCLK);
+	fpioa_set_function(42, FUNC_CMOS_HREF);
+	fpioa_set_function(43, FUNC_CMOS_PWDN);
+	fpioa_set_function(44, FUNC_CMOS_VSYNC);
+	fpioa_set_function(45, FUNC_CMOS_RST);
     
 	// fpioa_set_function(41, FUNC_SCCB_SCLK);
 	// fpioa_set_function(40, FUNC_SCCB_SDA);
 
     // Initialize the camera bus, 8bit reg
     // cambus_init(8, -2, 41, 40, 0, 0);
-    cambus_init(8, 2, 41, 40, 0, 0);
+    cambus_init(16, 2, 46, 47, 0, 0);
 	 // Initialize dvp interface
 	dvp_set_xclk_rate(freq);
 
@@ -322,7 +328,7 @@ int sensor_init_dvp(mp_int_t freq)
 
     cambus_set_writeb_delay(10);
     if(0 == sensro_ov_detect(&sensor)){//find ov sensor
-        // mp_printf(&mp_plat_print, "[MAIXPY]: find ov sensor\n");
+        mp_printf(&mp_plat_print, "[MAIXPY]: find ov sensor\n");
     }
     else if(0 == sensro_gc_detect(&sensor, true)){//find gc0328 sensor
         mp_printf(&mp_plat_print, "[MAIXPY]: find gc3028\n");
@@ -333,7 +339,7 @@ int sensor_init_dvp(mp_int_t freq)
         mp_printf(&mp_plat_print, "[MAIXPY]: no sensor\n");
         init_ret = -1;
     }
-    dvp_set_image_format(DVP_CFG_YUV_FORMAT);
+    dvp_set_image_format(DVP_CFG_RGB_FORMAT);
     dvp_enable_burst();
 	dvp_disable_auto();
 	dvp_set_output_enable(0, 1);	//enable to AI
@@ -498,6 +504,10 @@ int binocular_sensor_scan()
                     mp_printf(&mp_plat_print, "[MAIXPY]: find ov2640\n");
                     init_ret = ov2640_init(&sensor);
                     break;
+				case OV5640_ID:
+                    mp_printf(&mp_plat_print, "[MAIXPY]: find ov5640\n");
+                    init_ret = ov5640_init(&sensor);
+                    break;
                 case OV7740_ID:
                     mp_printf(&mp_plat_print, "[MAIXPY]: find ov7740\n");
                     init_ret = ov7740_init(&sensor);
@@ -506,6 +516,7 @@ int binocular_sensor_scan()
 					/*ov7725_init*/
                 default:
                     // Sensor is not supported.
+                    mp_printf(&mp_plat_print, "[MAIXPY]: binocular sensor(0x08%x) not support\n", sensor.chip_id);
                     return -3;
             }
         }
@@ -521,12 +532,12 @@ int binocular_sensor_scan()
 int binocular_sensor_reset(mp_int_t freq)
 {
 	sensor_init_fb();		//init FB
-    fpioa_set_function(47, FUNC_CMOS_PCLK);
-	fpioa_set_function(46, FUNC_CMOS_XCLK);
-	fpioa_set_function(45, FUNC_CMOS_HREF);
-	fpioa_set_function(44, FUNC_CMOS_PWDN);
-	fpioa_set_function(43, FUNC_CMOS_VSYNC);
-	fpioa_set_function(42, FUNC_CMOS_RST);
+    fpioa_set_function(40, FUNC_CMOS_PCLK);
+	fpioa_set_function(41, FUNC_CMOS_XCLK);
+	fpioa_set_function(42, FUNC_CMOS_HREF);
+	fpioa_set_function(43, FUNC_CMOS_PWDN);
+	fpioa_set_function(44, FUNC_CMOS_VSYNC);
+	fpioa_set_function(45, FUNC_CMOS_RST);
 
     /* Do a power cycle */
     DCMI_PWDN_HIGH();
@@ -536,7 +547,7 @@ int binocular_sensor_reset(mp_int_t freq)
     mp_hal_delay_ms(10);
 
     // Initialize the camera bus, 8bit reg
-    cambus_init(8, 2, 41, 40, 0, 0);
+    cambus_init(8, -2, 46, 47, 0, 0);
 	 // Initialize dvp interface
 	dvp_set_xclk_rate(freq);
 
@@ -675,8 +686,8 @@ int sensor_set_pixformat(pixformat_t pixformat)
 {
     switch (pixformat) {
         case PIXFORMAT_RGB565:
-	// 		dvp_set_image_format(DVP_CFG_RGB_FORMAT);
-    //         break;
+	 		dvp_set_image_format(DVP_CFG_RGB_FORMAT);
+            break;
         case PIXFORMAT_YUV422:
             dvp_set_image_format(DVP_CFG_YUV_FORMAT);
             break;

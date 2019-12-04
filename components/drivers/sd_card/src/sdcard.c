@@ -411,6 +411,8 @@ uint8_t sd_init(void)
 {
 	uint8_t frame[10], index, result;
 	cardinfo.active = 0;
+	uint8_t cmd0_retry = 0;
+	
 	#ifdef CONFIG_BOARD_M5STICK
 		fpioa_set_function(30, FUNC_SPI1_SCLK);
 		fpioa_set_function(33, FUNC_SPI1_D0);
@@ -418,10 +420,10 @@ uint8_t sd_init(void)
 		fpioa_set_function(32, FUNC_GPIOHS0 + SD_CS_PIN);
 		// fpioa_set_function(25, FUNC_SPI0_SS0 + SD_SS);
 	#else
-		fpioa_set_function(27, FUNC_SPI1_SCLK);
-		fpioa_set_function(28, FUNC_SPI1_D0);
-		fpioa_set_function(26, FUNC_SPI1_D1);
-		fpioa_set_function(29, FUNC_GPIOHS0 + SD_CS_PIN);
+		fpioa_set_function(29, FUNC_SPI1_SCLK);
+		fpioa_set_function(30, FUNC_SPI1_D0);
+		fpioa_set_function(31, FUNC_SPI1_D1);
+		fpioa_set_function(32, FUNC_GPIOHS0 + SD_CS_PIN);
 		// fpioa_set_function(25, FUNC_SPI0_SS0 + SD_SS);
 	#endif
 	/*!< Initialize SD_SPI */
@@ -437,13 +439,22 @@ uint8_t sd_init(void)
 	/*------------Put SD in SPI mode--------------*/
 	/*!< SD initialized and set to SPI mode properly */
 
+cmd0_retry:
     sd_send_cmd(SD_CMD0, 0, 0x95);
     result = sd_get_response();
     sd_end_cmd();
     if (result != 0x01)
     {
-    	// mp_printf(&mp_plat_print, "[MaixPy] %s | SD_CMD0 is %X\r\n",__func__,result);
-        return 0xFF;
+    	if(cmd0_retry++ < 20)
+    	{
+    		debug_print("[MaixPy] ERROR %s | SD_CMD0 is %X, retry ...\r\n",__func__,result);
+    		goto cmd0_retry;
+    	}
+		else
+		{
+        	debug_print("[MaixPy] %s SD_CMD0 is %X\n", __func__, result);
+        	return 0xFF;
+		}
     }
 
 	sd_send_cmd(SD_CMD8, 0x01AA, 0x87);
@@ -453,7 +464,7 @@ uint8_t sd_init(void)
 	sd_end_cmd();
 	if (result != 0x01)
 	{
-		// mp_printf(&mp_plat_print, "[MaixPy] %s | SD_CMD8 is %X\r\n",__func__,result);
+		debug_print("[MaixPy] ERROR %s | SD_CMD8 is %X\r\n",__func__,result);
 		return 0xFF;
     }
 	index = 0xFF;
@@ -463,7 +474,7 @@ uint8_t sd_init(void)
 		sd_end_cmd();
 		if (result != 0x01)
 		{
-			// mp_printf(&mp_plat_print, "SD_CMD55 ack %X\r\n", result);
+			debug_print("[MaixPy] ERROR SD_CMD55 ack %X\r\n", result);
 			return 0xFF;
 		}
 		sd_send_cmd(SD_ACMD41, 0x40000000, 0);
@@ -474,7 +485,7 @@ uint8_t sd_init(void)
 	}
 	if (index == 0)
 	{
-        // mp_printf(&mp_plat_print, "SD_CMD55 is %X\r\n", result);
+        debug_print("[MaixPy] ERROR SD_CMD55 is %X\r\n", result);
 		return 0xFF;
     }
 	index = 255;
@@ -496,7 +507,7 @@ uint8_t sd_init(void)
 	}
 	if(index == 0)
 	{
-		// mp_printf(&mp_plat_print, "[MaixPy] %s | SD_CMD58 is %X\r\n",__func__,result);
+		debug_print("[MaixPy] %s | SD_CMD58 is %X\r\n",__func__,result);
 		return 0xFF;
 	}
 	if ((frame[0] & 0x40) == 0)

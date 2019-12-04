@@ -15,7 +15,7 @@ import serial.tools.miniterm
 parser = argparse.ArgumentParser(add_help=False, prog="flash.py")
 
 ############################### Add option here #############################
-boards_choices = ["dan", "bit", "bit_mic", "goE", "goD", "maixduino", "kd233", "auto"]
+boards_choices = ["dan", "bit", "bit_mic", "goE", "goD", "maixduino", "kd233", "auto", "bananapi"]
 parser.add_argument("-p", "--port", help="[flash] device port", default="")
 parser.add_argument("-b", "--baudrate", type=int, help="[flash] baudrate", default=115200)
 parser.add_argument("-t", "--terminal", help="[flash] start a terminal after finish (Python miniterm)", default=False, action="store_true")
